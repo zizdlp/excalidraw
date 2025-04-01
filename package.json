@@ -1,7 +1,6 @@
 {
-  "private": false,
-  "version": "1.0.0", 
-  "name": "@zditor/excalidraw", 
+  "private": true,
+  "name": "excalidraw-monorepo",
   "packageManager": "yarn@1.22.22",
   "workspaces": [
     "excalidraw-app",
