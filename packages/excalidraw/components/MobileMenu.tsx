@@ -191,24 +191,26 @@ export const MobileMenu = ({
               />
             </Section>
           ) : null}
-          <footer className="App-toolbar">
-            {renderAppToolbar()}
-            {appState.scrolledOutside &&
-              !appState.openMenu &&
-              !appState.openSidebar && (
-                <button
-                  type="button"
-                  className="scroll-back-to-content"
-                  onClick={() => {
-                    setAppState((appState) => ({
-                      ...calculateScrollCenter(elements, appState),
-                    }));
-                  }}
-                >
-                  {t("buttons.scrollBackToContent")}
-                </button>
-              )}
-          </footer>
+          {!appState.viewModeEnabled && (
+            <footer className="App-toolbar">
+              {renderAppToolbar()}
+              {appState.scrolledOutside &&
+                !appState.openMenu &&
+                !appState.openSidebar && (
+                  <button
+                    type="button"
+                    className="scroll-back-to-content"
+                    onClick={() => {
+                      setAppState((appState) => ({
+                        ...calculateScrollCenter(elements, appState),
+                      }));
+                    }}
+                  >
+                    {t("buttons.scrollBackToContent")}
+                  </button>
+                )}
+            </footer>
+          )}
         </Island>
       </div>
     </>
