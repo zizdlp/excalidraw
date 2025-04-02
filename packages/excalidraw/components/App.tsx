@@ -2671,24 +2671,24 @@ class App extends React.Component<AppProps, AppState> {
         { passive: false },
       ),
       // Safari-only desktop pinch zoom
-      addEventListener(
-        document,
-        EVENT.GESTURE_START,
-        this.onGestureStart as any,
-        false,
-      ),
-      addEventListener(
-        document,
-        EVENT.GESTURE_CHANGE,
-        this.onGestureChange as any,
-        false,
-      ),
-      addEventListener(
-        document,
-        EVENT.GESTURE_END,
-        this.onGestureEnd as any,
-        false,
-      ),
+      // addEventListener(
+      //   document,
+      //   EVENT.GESTURE_START,
+      //   this.onGestureStart as any,
+      //   false,
+      // ),
+      // addEventListener(
+      //   document,
+      //   EVENT.GESTURE_CHANGE,
+      //   this.onGestureChange as any,
+      //   false,
+      // ),
+      // addEventListener(
+      //   document,
+      //   EVENT.GESTURE_END,
+      //   this.onGestureEnd as any,
+      //   false,
+      // ),
       addEventListener(
         window,
         EVENT.FOCUS,
