@@ -54,6 +54,9 @@ const RE_REDDIT =
 const RE_REDDIT_EMBED =
   /^<blockquote[\s\S]*?\shref=["'](https?:\/\/(?:www\.)?reddit\.com\/[^"']*)/i;
 
+const RE_BILIBILI = /^(?:http(?:s)?:\/\/)?(?:www\.)?bilibili\.com\/video\/([a-zA-Z0-9]+)(?:\/?\?.*)?/i;
+const RE_BILIBILI_SHORT = /^(?:http(?:s)?:\/\/)?b23\.tv\/([a-zA-Z0-9]+)/i;
+
 const ALLOWED_DOMAINS = new Set([
   "youtube.com",
   "youtu.be",
@@ -69,6 +72,9 @@ const ALLOWED_DOMAINS = new Set([
   "val.town",
   "giphy.com",
   "reddit.com",
+  "bilibili.com",
+  "player.bilibili.com",
+  "b23.tv"
 ]);
 
 const ALLOW_SAME_ORIGIN = new Set([
@@ -82,6 +88,8 @@ const ALLOW_SAME_ORIGIN = new Set([
   "*.simplepdf.eu",
   "stackblitz.com",
   "reddit.com",
+  "bilibili.com",
+  "player.bilibili.com"
 ]);
 
 export const createSrcDoc = (body: string) => {
@@ -139,6 +147,27 @@ export const getEmbedLink = (
       type,
       sandbox: { allowSameOrigin },
     };
+  }
+
+  const bilibiliLink = link.match(RE_BILIBILI);
+  const bilibiliShortLink = link.match(RE_BILIBILI_SHORT);
+  if (bilibiliLink?.[1] || bilibiliShortLink?.[1]) {
+      type = "video";
+      const videoId = bilibiliLink?.[1] || bilibiliShortLink?.[1];
+      link = `https://player.bilibili.com/player.html?bvid=${videoId}&high_quality=1&danmaku=0&autoplay=0`;
+      aspectRatio = { w: 560, h: 315 };
+      embeddedLinkCache.set(originalLink, {
+          link,
+          intrinsicSize: aspectRatio,
+          type,
+          sandbox: { allowSameOrigin },
+      });
+      return {
+          link,
+          intrinsicSize: aspectRatio,
+          type,
+          sandbox: { allowSameOrigin },
+      };
   }
 
   const vimeoLink = link.match(RE_VIMEO);
