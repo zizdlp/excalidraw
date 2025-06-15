@@ -10304,11 +10304,27 @@ class App extends React.Component<AppProps, AppState> {
         jsonData: nodeData.jsonData,
       });
     } else {
-      console.log(
-        "没有发现prosemirror node数据",
-        "Available formats:",
-        Array.from(event.dataTransfer?.types || []),
+      // 尝试发现是否是tag,如果是就是作为附件传递
+      let tagDataStr = event.dataTransfer?.getData(
+        "application/x-drag-tree-item-tag",
       );
+      console.log("tagDataStr:", tagDataStr);
+      if (tagDataStr) {
+        const tagData = JSON.parse(tagDataStr);
+
+        // Get the original position and node
+        const tagAbsolutePath = tagData.absolutePath;
+        const tagResouceType = tagData.resouceType;
+        if (tagResouceType === "file") {
+          // 仅处理file类型
+          const embeddable = this.insertMarkdownEmbeddableElement({
+            sceneX: sceneX,
+            sceneY,
+            link: tagAbsolutePath,
+            jsonData: undefined,
+          });
+        }
+      }
     }
 
     try {
