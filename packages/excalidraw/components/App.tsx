@@ -7585,6 +7585,65 @@ class App extends React.Component<AppProps, AppState> {
     return element;
   };
 
+  public insertMarkdownEmbeddableElement = ({
+    sceneX,
+    sceneY,
+    link,
+    jsonData,
+  }: {
+    sceneX: number;
+    sceneY: number;
+    link: string;
+    jsonData: any;
+  }) => {
+    const [gridX, gridY] = getGridPoint(
+      sceneX,
+      sceneY,
+      this.lastPointerDownEvent?.[KEYS.CTRL_OR_CMD]
+        ? null
+        : this.getEffectiveGridSize(),
+    );
+
+    const embedLink = getEmbedLink(link);
+
+    if (!embedLink) {
+      return;
+    }
+
+    if (embedLink.error instanceof URIError) {
+      this.setToast({
+        message: t("toast.unrecognizedLinkFormat"),
+        closable: true,
+      });
+    }
+
+    const element = newEmbeddableElement({
+      type: "embeddable",
+      x: gridX,
+      y: gridY,
+      strokeColor: "transparent",
+      backgroundColor: "transparent",
+      fillStyle: this.state.currentItemFillStyle,
+      strokeWidth: this.state.currentItemStrokeWidth,
+      strokeStyle: this.state.currentItemStrokeStyle,
+      roughness: this.state.currentItemRoughness,
+      roundness: this.getCurrentItemRoundness("embeddable"),
+      opacity: this.state.currentItemOpacity,
+      locked: false,
+      width: embedLink.intrinsicSize.w,
+      height: embedLink.intrinsicSize.h,
+      link,
+      customData: {
+        jsonValue: jsonData,
+        link: link,
+        type: "embeddable",
+      },
+    });
+
+    this.scene.insertElement(element);
+
+    return element;
+  };
   //create rectangle element with youtube top left on nearest grid point width / hight 640/360
   public insertEmbeddableElement = ({
     sceneX,
@@ -10204,6 +10263,59 @@ class App extends React.Component<AppProps, AppState> {
       event,
       this.state,
     );
+
+    console.log("call handleDrop:", event);
+
+    // Try to get data from multiple formats for better compatibility
+    let nodeDataStr = event.dataTransfer?.getData(
+      "application/prosemirror-node",
+    );
+
+    // If custom format is empty, try standard formats
+    if (!nodeDataStr) {
+      // Try text/plain format with our special wrapper
+      const textData = event.dataTransfer?.getData("text/plain");
+      if (
+        textData &&
+        textData.startsWith("__PROSEMIRROR_NODE__") &&
+        textData.endsWith("__END__")
+      ) {
+        nodeDataStr = textData.slice(20, -7); // Remove wrapper
+      }
+
+      // Try text/html format
+      if (!nodeDataStr) {
+        const htmlData = event.dataTransfer?.getData("text/html");
+        if (htmlData) {
+          const match = htmlData.match(/data-prosemirror-node="([^"]+)"/);
+          if (match) {
+            nodeDataStr = decodeURIComponent(match[1]);
+          }
+        }
+      }
+    }
+    if (nodeDataStr) {
+      const nodeData = JSON.parse(nodeDataStr);
+      console.log("nodeData", nodeData);
+      //mydebug
+      const embeddable = this.insertMarkdownEmbeddableElement({
+        sceneX: sceneX,
+        sceneY,
+        link: "demo.md",
+        jsonData: nodeData.jsonData,
+      });
+      // this.setState({
+      //   selectedElementIds: Object.fromEntries(
+      //     embeddables.map((embeddable) => [embeddable.id, true]),
+      //   ),
+      // });
+    } else {
+      console.log(
+        "没有发现prosemirror node数据",
+        "Available formats:",
+        Array.from(event.dataTransfer?.types || []),
+      );
+    }
 
     try {
       // if image tool not supported, don't show an error here and let it fall
