@@ -7621,8 +7621,8 @@ class App extends React.Component<AppProps, AppState> {
       type: "embeddable",
       x: gridX,
       y: gridY,
-      strokeColor: "transparent",
-      backgroundColor: "transparent",
+      strokeColor: "#283593",
+      backgroundColor: "#E8EAF6",
       fillStyle: this.state.currentItemFillStyle,
       strokeWidth: this.state.currentItemStrokeWidth,
       strokeStyle: this.state.currentItemStrokeStyle,
@@ -10297,18 +10297,12 @@ class App extends React.Component<AppProps, AppState> {
     if (nodeDataStr) {
       const nodeData = JSON.parse(nodeDataStr);
       console.log("nodeData", nodeData);
-      //mydebug
       const embeddable = this.insertMarkdownEmbeddableElement({
         sceneX: sceneX,
         sceneY,
         link: "demo.md",
         jsonData: nodeData.jsonData,
       });
-      // this.setState({
-      //   selectedElementIds: Object.fromEntries(
-      //     embeddables.map((embeddable) => [embeddable.id, true]),
-      //   ),
-      // });
     } else {
       console.log(
         "没有发现prosemirror node数据",

@@ -54,8 +54,11 @@ const RE_REDDIT =
 const RE_REDDIT_EMBED =
   /^<blockquote[\s\S]*?\shref=["'](https?:\/\/(?:www\.)?reddit\.com\/[^"']*)/i;
 
-const RE_BILIBILI = /^(?:http(?:s)?:\/\/)?(?:www\.)?bilibili\.com\/video\/([a-zA-Z0-9]+)(?:\/?\?.*)?/i;
+const RE_BILIBILI =
+  /^(?:http(?:s)?:\/\/)?(?:www\.)?bilibili\.com\/video\/([a-zA-Z0-9]+)(?:\/?\?.*)?/i;
 const RE_BILIBILI_SHORT = /^(?:http(?:s)?:\/\/)?b23\.tv\/([a-zA-Z0-9]+)/i;
+const RE_LOCAL_RESOURCE =
+  /\.(mp4|avi|mov|wmv|flv|mkv|webm|jpg|jpeg|png|avif|apng|gif|webp|svg|bmp|tiff|tif|md)(?:\?.*)?$/i;
 
 const ALLOWED_DOMAINS = new Set([
   "youtube.com",
@@ -74,7 +77,7 @@ const ALLOWED_DOMAINS = new Set([
   "reddit.com",
   "bilibili.com",
   "player.bilibili.com",
-  "b23.tv"
+  "b23.tv",
 ]);
 
 const ALLOW_SAME_ORIGIN = new Set([
@@ -89,7 +92,7 @@ const ALLOW_SAME_ORIGIN = new Set([
   "stackblitz.com",
   "reddit.com",
   "bilibili.com",
-  "player.bilibili.com"
+  "player.bilibili.com",
 ]);
 
 export const createSrcDoc = (body: string) => {
@@ -115,6 +118,20 @@ export const getEmbedLink = (
 
   let type: "video" | "generic" = "generic";
   let aspectRatio = { w: 560, h: 840 };
+
+  if (RE_LOCAL_RESOURCE.test(link)) {
+    type = "video";
+    aspectRatio = { w: 560, h: 315 };
+    const result = {
+      link,
+      intrinsicSize: aspectRatio,
+      type,
+      sandbox: { allowSameOrigin: true },
+    };
+    embeddedLinkCache.set(originalLink, result);
+    return result;
+  }
+
   const ytLink = link.match(RE_YOUTUBE);
   if (ytLink?.[2]) {
     const time = ytLink[3] ? `&start=${ytLink[3]}` : ``;
@@ -152,22 +169,22 @@ export const getEmbedLink = (
   const bilibiliLink = link.match(RE_BILIBILI);
   const bilibiliShortLink = link.match(RE_BILIBILI_SHORT);
   if (bilibiliLink?.[1] || bilibiliShortLink?.[1]) {
-      type = "video";
-      const videoId = bilibiliLink?.[1] || bilibiliShortLink?.[1];
-      link = `https://player.bilibili.com/player.html?bvid=${videoId}&high_quality=1&danmaku=0&autoplay=0`;
-      aspectRatio = { w: 560, h: 315 };
-      embeddedLinkCache.set(originalLink, {
-          link,
-          intrinsicSize: aspectRatio,
-          type,
-          sandbox: { allowSameOrigin },
-      });
-      return {
-          link,
-          intrinsicSize: aspectRatio,
-          type,
-          sandbox: { allowSameOrigin },
-      };
+    type = "video";
+    const videoId = bilibiliLink?.[1] || bilibiliShortLink?.[1];
+    link = `https://player.bilibili.com/player.html?bvid=${videoId}&high_quality=1&danmaku=0&autoplay=0`;
+    aspectRatio = { w: 560, h: 315 };
+    embeddedLinkCache.set(originalLink, {
+      link,
+      intrinsicSize: aspectRatio,
+      type,
+      sandbox: { allowSameOrigin },
+    });
+    return {
+      link,
+      intrinsicSize: aspectRatio,
+      type,
+      sandbox: { allowSameOrigin },
+    };
   }
 
   const vimeoLink = link.match(RE_VIMEO);
@@ -419,6 +436,9 @@ export const embeddableURLValidator = (
 ): boolean => {
   if (!url) {
     return false;
+  }
+  if (RE_LOCAL_RESOURCE.test(url)) {
+    return true;
   }
   if (validateEmbeddable != null) {
     if (typeof validateEmbeddable === "function") {
